@@ -9,36 +9,104 @@ const server = http.createServer((req, res) => {
         <html>
         <head>
             <title>Simple Chat</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; background-color: black; display: flex;  margin: 0;">
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: black;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                }
 
-        <div style="width:590px; border: 1px solid #dbdbdb; border-radius: 8px;color:white; background-color: black; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-            <h1 style="text-align: center; font-size: 24px; color:wheat; margin-top: 10px;">Chat Room</h1>
-            <div id="chat" style="height: 300px; overflow-y: scroll; padding: 10px; border-bottom: 1px solid #dbdbdb;"></div>
-            <input type="text" id="name" placeholder="Your Name" style="width: calc(100% - 20px); padding: 10px; border: 1px solid #dbdbdb; border-radius: 4px; margin: 10px;">
-            <button onclick="setName()" style="height: 40px; width: 80px; background-color: #0095f6; color: white; border: none; border-radius: 10px; cursor: pointer;">Set Name</button>
-            <input type="text" id="message" placeholder="Type a message..." style="width: calc(100% - 20px); padding: 10px; border: 1px solid #dbdbdb; border-radius: 4px; margin: 10px;" disabled>
-            <button onclick="sendMessage()" style="height: 40px; width: 80px; background-color: #0095f6; color: white; border: none; border-radius: 10px; cursor: pointer;" disabled>Send</button>
-        </div>
+                .chat-container {
+                    width: 400px;
+                    border: 1px solid #dbdbdb;
+                    border-radius: 8px;
+                    background-color: black;
+                    color: white;
+                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    padding: 20px;
+                }
+
+                .chat-container h1 {
+                    text-align: center;
+                    font-size: 24px;
+                    color: wheat;
+                    margin-top: 10px;
+                }
+
+                .chat-messages {
+                    height: 300px;
+                    overflow-y: scroll;
+                    padding: 10px;
+                    border-bottom: 1px solid #dbdbdb;
+                    margin-bottom: 10px;
+                }
+
+                .input-container {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+
+                .input-container input[type="text"], 
+                .input-container button {
+                    height: 40px;
+                    padding: 10px;
+                    border: 1px solid #dbdbdb;
+                    border-radius: 4px;
+                    margin-right: 10px;
+                    font-size: 14px;
+                    box-sizing: border-box;
+                }
+
+                .input-container button {
+                    background-color: #0095f6;
+                    color: white;
+                    border: none;
+                    border-radius: 10px;
+                    cursor: pointer;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="chat-container">
+                <h1>Chat Room</h1>
+                <div class="chat-messages" id="chat"></div>
+                <div class="input-container">
+                    <input type="text" id="name" placeholder="Your Name">
+                    <button onclick="setName()">Set Name</button>
+                </div>
+                <div class="input-container">
+                    <input type="text" id="message" placeholder="Type a message..." disabled>
+                    <button onclick="sendMessage()" disabled>Send</button>
+                </div>
+            </div>
     
             <script>
-                // Create a WebSocket connection to the server
-                const ws = new WebSocket('ws://' + location.host);
+                const ws = new WebSocket('wss://' + location.host);
                 let userName = '';
 
-                // Display messages received from the server
-                ws.onmessage = (event) => {
+                ws.onopen = function(event) {
+                    console.log('WebSocket connection established.');
+                };
+
+                ws.onmessage = function(event) {
                     const chat = document.getElementById('chat');
                     const newMessage = document.createElement('div');
                     const messageData = JSON.parse(event.data);
 
-                    // Display sender and message
                     newMessage.innerHTML = '<strong>' + messageData.sender + ':</strong> ' + messageData.message;
                     chat.appendChild(newMessage);
-                    chat.scrollTop = chat.scrollHeight; // Scroll to the latest message
+                    chat.scrollTop = chat.scrollHeight;
                 };
 
-                // Function to set the user's name
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                };
+
                 function setName() {
                     const nameInput = document.getElementById('name');
                     userName = nameInput.value.trim();
@@ -52,17 +120,14 @@ const server = http.createServer((req, res) => {
                     }
                 }
 
-                // Function to send a message to the server
                 function sendMessage() {
                     const messageInput = document.getElementById('message');
                     const message = messageInput.value;
 
                     if (message.trim()) {
-                        // Send message along with the user's name
                         ws.send(JSON.stringify({ sender: userName, message: message }));
                     }
 
-                    // Clear the input field
                     messageInput.value = '';
                 }
             </script>
@@ -75,11 +140,9 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
-    // Handle incoming messages from clients
     ws.on('message', (data) => {
         const messageData = JSON.parse(data);
         
-        // Broadcast the message to all connected clients with the sender's info
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(messageData));
@@ -87,11 +150,11 @@ wss.on('connection', (ws) => {
         });
     });
 
-    // Send a welcome message to the newly connected client
     ws.send(JSON.stringify({ sender: 'Server', message: 'Welcome to the chat!' }));
 });
 
 // Start the server
-server.listen(8080, () => {
-    console.log('Server is listening on port 8080');
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
 });
