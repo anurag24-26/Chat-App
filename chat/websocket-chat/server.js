@@ -89,6 +89,15 @@ const server = http.createServer((req, res) => {
                 const ws = new WebSocket('wss://' + location.host);
                 let userName = '';
 
+                // Request permission for notifications
+                if (Notification.permission === "default") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission !== "granted") {
+                            alert("You need to allow notifications for the best experience.");
+                        }
+                    });
+                }
+
                 ws.onopen = function(event) {
                     console.log('WebSocket connection established.');
                 };
@@ -98,9 +107,18 @@ const server = http.createServer((req, res) => {
                     const newMessage = document.createElement('div');
                     const messageData = JSON.parse(event.data);
 
+                    // Display the new message in the chat
                     newMessage.innerHTML = '<strong>' + messageData.sender + ':</strong> ' + messageData.message;
                     chat.appendChild(newMessage);
                     chat.scrollTop = chat.scrollHeight;
+
+                    // Show a notification if the message is not from the current user
+                    if (messageData.sender !== userName && Notification.permission === "granted") {
+                        new Notification('New Message from ' + messageData.sender, {
+                            body: messageData.message,
+                            icon: 'https://via.placeholder.com/128' // Example placeholder image for notification icon
+                        });
+                    }
                 };
 
                 ws.onerror = function(error) {
@@ -110,7 +128,7 @@ const server = http.createServer((req, res) => {
                 function setName() {
                     const nameInput = document.getElementById('name');
                     userName = nameInput.value.trim();
-                    
+
                     if (userName) {
                         nameInput.disabled = true;
                         document.getElementById('message').disabled = false;
