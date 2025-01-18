@@ -1,8 +1,5 @@
 const WebSocket = require('ws');
 const http = require('http');
-const path = require('path');
-const fs = require('fs');
-
 
 // Create an HTTP server to serve the chat HTML page
 const server = http.createServer((req, res) => {
@@ -102,7 +99,7 @@ const server = http.createServer((req, res) => {
                     if (messageData.type === 'message') {
                         const messageBubble = document.createElement('div');
                         messageBubble.classList.add('message-bubble');
-                        messageBubble.innerHTML = `<strong>${messageData.sender}:</strong> ${messageData.message}`;
+                        messageBubble.innerHTML = '<strong>' + messageData.sender + ':</strong> ' + messageData.message;
                         chat.appendChild(messageBubble);
                         chat.scrollTop = chat.scrollHeight;
                     } else if (messageData.type === 'userList') {
