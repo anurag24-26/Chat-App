@@ -1,8 +1,16 @@
 const WebSocket = require("ws");
-const http = require("http");
+const https = require("https");
+const fs = require("fs");
+const path = require("path");
 
-// Create an HTTP server to serve the chat HTML page
-const server = http.createServer((req, res) => {
+// Load SSL certificates (Replace these paths with your actual certificate files)
+const options = {
+  key: fs.readFileSync(path.join(__dirname, "ssl", "key.pem")),
+  cert: fs.readFileSync(path.join(__dirname, "ssl", "cert.pem")),
+};
+
+// Create an HTTPS server to serve the chat HTML page
+const server = https.createServer(options, (req, res) => {
   if (req.method === "GET" && req.url === "/") {
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(`
@@ -110,36 +118,33 @@ const server = http.createServer((req, res) => {
     <body>
         <div class="login-container" id="login">
             <h2>Login</h2>
-            <input type="text" id="username" placeholder="Enter your name" />
+            <input type="text" id="usernameInput" placeholder="Enter your name" />
             <button onclick="joinChat()">Join Chat</button>
         </div>
         <div class="chat-container" id="chat">
             <div class="chat-header">Chat Room</div>
             <div class="chat-messages" id="messages"></div>
             <div class="chat-footer">
-                <input type="file" id="fileInput" style="display: none;" />
                 <input type="text" id="messageInput" placeholder="Type a message..." />
                 <button onclick="sendMessage()">Send</button>
-                <button onclick="sendFile()">📁</button>
             </div>
         </div>
         <script>
-            const ws = new WebSocket('ws://' + location.host);
-            let username = '';
+            let username = "";
+            const ws = new WebSocket('wss://' + location.host);
 
-            ws.onopen = () => console.log('Connected to server');
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 const messages = document.getElementById('messages');
                 const messageElement = document.createElement('div');
                 messageElement.className = 'message ' + (data.sender === username ? 'self' : 'other');
-                messageElement.textContent = data.message;
+                messageElement.textContent = data.sender + ": " + data.message;
                 messages.appendChild(messageElement);
                 messages.scrollTop = messages.scrollHeight;
             };
 
             function joinChat() {
-                username = document.getElementById('username').value.trim();
+                username = document.getElementById('usernameInput').value.trim();
                 if (username) {
                     ws.send(JSON.stringify({ type: 'join', username }));
                     document.getElementById('login').style.display = 'none';
@@ -154,19 +159,6 @@ const server = http.createServer((req, res) => {
                     ws.send(JSON.stringify({ type: 'message', sender: username, message }));
                     messageInput.value = '';
                 }
-            }
-
-            function sendFile() {
-                const fileInput = document.getElementById('fileInput');
-                fileInput.click();
-                fileInput.onchange = () => {
-                    const file = fileInput.files[0];
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        ws.send(JSON.stringify({ type: 'file', sender: username, message: reader.result }));
-                    };
-                    reader.readAsDataURL(file);
-                };
             }
         </script>
     </body>
@@ -188,7 +180,7 @@ wss.on("connection", (ws) => {
       ws.username = data.username;
       const joinMessage = { type: "message", sender: "Server", message: `${data.username} joined the chat` };
       broadcast(joinMessage);
-    } else if (data.type === "message" || data.type === "file") {
+    } else if (data.type === "message") {
       broadcast(data);
     }
   });
@@ -202,4 +194,4 @@ function broadcast(data) {
   });
 }
 
-server.listen(8080, () => console.log("Server running on http://localhost:8080"));
+server.listen(443, () => console.log("Server running on https://localhost"));
