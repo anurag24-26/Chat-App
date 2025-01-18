@@ -16,10 +16,12 @@ const server = http.createServer((req, res) => {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+font-size:30px;
+
             background-color: #000000;
         }
         .chat-container {
-            width: 80%;
+            width: 100%;
             margin: 50px auto;
             background: #fff;
             padding: 20px;
@@ -96,11 +98,13 @@ background-image:url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c
 <body>
     <div class="chat-container">
         <h1>Chat Room</h1>
+<input type="text" id="name" placeholder="Your Name">
+            <button onclick="setName()">Set Name</button>
+
         <div id="user-list">Online Users:</div>
         <div class="chat-messages" id="chat"></div>
         <div class="input-container">
-            <input type="text" id="name" placeholder="Your Name">
-            <button onclick="setName()">Set Name</button>
+            
             <input type="text" id="message" placeholder="Type a message..." disabled>
             <button onclick="sendMessage()" disabled>Send</button>
         </div>
