@@ -53,19 +53,21 @@ background-image:url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c
         input[type="text"] {
             padding: 10px;
             margin: 5px 0;
-            width: 100%;
-            font-size: 14px;
+            width: 50%;
+            font-size: 30px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
         button {
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 5px;
+           padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    font-size: 40px;
+    width: fit-content;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 5px;
         }
         button:disabled {
             background-color: #ccc;
