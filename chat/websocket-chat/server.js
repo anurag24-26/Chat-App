@@ -6,140 +6,158 @@ const server = http.createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/') {
         // Serve the HTML file
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Simple Chat</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 0;
-                    background-color: #f0f0f0;
-                }
-                .chat-container {
-                    width: 60%;
-                    margin: 50px auto;
-                    background: #fff;
-                    padding: 20px;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                }
-                .chat-messages {
-                    height: 400px;
-                    overflow-y: auto;
-                    margin-bottom: 10px;
-                }
-                .input-container {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                }
-                input[type="text"] {
-                    padding: 10px;
-                    margin: 5px 0;
-                    width: 100%;
-                    font-size: 14px;
-                    border: 1px solid #ccc;
-                    border-radius: 5px;
-                }
-                button {
-                    padding: 10px;
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    margin-top: 5px;
-                }
-                button:disabled {
-                    background-color: #ccc;
-                    cursor: not-allowed;
-                }
-                .message-bubble {
-                    margin: 10px;
-                    padding: 10px;
-                    background-color: #f1f1f1;
-                    border-radius: 10px;
-                    max-width: 60%;
-                }
-                #user-list {
-                    margin-bottom: 20px;
-                    font-weight: bold;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="chat-container">
-                <h1>Chat Room</h1>
-                <div id="user-list">Online Users:</div>
-                <div class="chat-messages" id="chat"></div>
-                <div class="input-container">
-                    <input type="text" id="name" placeholder="Your Name">
-                    <button onclick="setName()">Set Name</button>
-                    <input type="text" id="message" placeholder="Type a message..." disabled>
-                    <button onclick="sendMessage()" disabled>Send</button>
-                </div>
-            </div>
+      res.end(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        .chat-container {
+            width: 60%;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message-bubble {
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 60%;
+            word-wrap: break-word;
+        }
+        .message-bubble.sent {
+            background-color: #4CAF50;
+            color: white;
+            align-self: flex-end;
+            border-radius: 10px 10px 0 10px;
+        }
+        .message-bubble.received {
+            background-color: #e0e0e0;
+            color: #333;
+            align-self: flex-start;
+            border-radius: 10px 10px 10px 0;
+        }
+        #user-list {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Chat Room</h1>
+        <div id="user-list">Online Users:</div>
+        <div class="chat-messages" id="chat"></div>
+        <div class="input-container">
+            <input type="text" id="name" placeholder="Your Name">
+            <button onclick="setName()">Set Name</button>
+            <input type="text" id="message" placeholder="Type a message..." disabled>
+            <button onclick="sendMessage()" disabled>Send</button>
+        </div>
+    </div>
 
-            <script>
-                const ws = new WebSocket('wss://' + location.host);
-                let userName = '';
+    <script>
+        const ws = new WebSocket('wss://' + location.host);
+        let userName = '';
 
-                ws.onopen = function(event) {
-                    console.log('WebSocket connection established.');
-                };
+        ws.onopen = function(event) {
+            console.log('WebSocket connection established.');
+        };
 
-                ws.onmessage = function(event) {
-                    const chat = document.getElementById('chat');
-                    const newMessage = document.createElement('div');
-                    const messageData = JSON.parse(event.data);
+        ws.onmessage = function(event) {
+            const chat = document.getElementById('chat');
+            const newMessage = JSON.parse(event.data);
 
-                    if (messageData.type === 'message') {
-                        const messageBubble = document.createElement('div');
-                        messageBubble.classList.add('message-bubble');
-                        messageBubble.innerHTML = '<strong>' + messageData.sender + ':</strong> ' + messageData.message;
-                        chat.appendChild(messageBubble);
-                        chat.scrollTop = chat.scrollHeight;
-                    } else if (messageData.type === 'userList') {
-                        const userList = document.getElementById('user-list');
-                        userList.innerHTML = 'Online Users: ' + messageData.users.join(', ');
-                    }
-                };
+            if (newMessage.type === 'message') {
+                const messageBubble = document.createElement('div');
+                messageBubble.classList.add('message-bubble', newMessage.sender === userName ? 'sent' : 'received');
+                messageBubble.innerHTML = '<strong>' + newMessage.sender + ':</strong> ' + newMessage.message;
+                chat.appendChild(messageBubble);
+                chat.scrollTop = chat.scrollHeight;
+            } else if (newMessage.type === 'userList') {
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = 'Online Users: ' + newMessage.users.join(', ');
+            }
+        };
 
-                ws.onerror = function(error) {
-                    console.error('WebSocket error:', error);
-                };
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
 
-                function setName() {
-                    const nameInput = document.getElementById('name');
-                    userName = nameInput.value.trim();
+        function setName() {
+            const nameInput = document.getElementById('name');
+            userName = nameInput.value.trim();
 
-                    if (userName) {
-                        nameInput.disabled = true;
-                        document.getElementById('message').disabled = false;
-                        document.querySelector('button[onclick="sendMessage()"]').disabled = false;
-                        ws.send(JSON.stringify({ type: 'setName', name: userName }));
-                    } else {
-                        alert('Please enter a name.');
-                    }
-                }
+            if (userName) {
+                nameInput.disabled = true;
+                document.getElementById('message').disabled = false;
+                document.querySelector('button[onclick="sendMessage()"]').disabled = false;
+                ws.send(JSON.stringify({ type: 'setName', name: userName }));
+            } else {
+                alert('Please enter a name.');
+            }
+        }
 
-                function sendMessage() {
-                    const messageInput = document.getElementById('message');
-                    const message = messageInput.value;
+        function sendMessage() {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value;
 
-                    if (message.trim()) {
-                        const messageData = { type: 'message', sender: userName, message: message };
-                        ws.send(JSON.stringify(messageData));
-                    }
+            if (message.trim()) {
+                const messageData = { type: 'message', sender: userName, message: message };
+                ws.send(JSON.stringify(messageData));
+            }
 
-                    messageInput.value = '';
-                }
-            </script>
-        </body>
-        </html>
+            messageInput.value = '';
+        }
+    </script>
+</body>
+</html>
+
         `);
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
