@@ -80,16 +80,16 @@ background-image:url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c
             word-wrap: break-word;
         }
         .message-bubble.sent {
-            background-color: #4CAF50;
-            color: white;
-            align-self: flex-end;
-            border-radius: 10px 10px 0 10px;
+               background-color: #20421a;
+    color: #ffffff;
+    align-self: flex-end;
+    border-radius: 40px 40px 0 40px;
         }
         .message-bubble.received {
-            background-color: #e0e0e0;
-            color: #333;
-            align-self: flex-start;
-            border-radius: 10px 10px 10px 0;
+          background-color: #77437e;
+    color: #ffffff;
+    align-self: flex-start;
+    border-radius: 40px 40px 40px 0px;
         }
         #user-list {
             margin-bottom: 20px;
