@@ -1,197 +1,150 @@
-const WebSocket = require("ws");
-const https = require("https");
-const fs = require("fs");
-const path = require("path");
+const http = require('http');
+const WebSocket = require('ws');
 
-// Load SSL certificates (Replace these paths with your actual certificate files)
-const options = {
-  key: fs.readFileSync(path.join(__dirname, "ssl", "key.pem")),
-  cert: fs.readFileSync(path.join(__dirname, "ssl", "cert.pem")),
-};
-
-// Create an HTTPS server to serve the chat HTML page
-const server = https.createServer(options, (req, res) => {
-  if (req.method === "GET" && req.url === "/") {
-    res.writeHead(200, { "Content-Type": "text/html" });
+// Create HTTP server
+const server = http.createServer((req, res) => {
+  if (req.method === 'GET' && req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(`
-    <!DOCTYPE html>
-    <html>
-    <head>
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Chat App</title>
         <style>
-            body {
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background-color: #f0f0f0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
-            .login-container {
-                width: 100%;
-                max-width: 400px;
-                padding: 20px;
-                border-radius: 8px;
-                background-color: white;
-                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                text-align: center;
-            }
-            .login-container input {
-                width: 80%;
-                padding: 10px;
-                margin-bottom: 20px;
-                border-radius: 4px;
-                border: 1px solid #ccc;
-            }
-            .login-container button {
-                padding: 10px 20px;
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
-            .chat-container {
-                display: none;
-                flex-direction: column;
-                width: 100%;
-                height: 100%;
-                max-width: 400px;
-                background-color: white;
-                border-radius: 8px;
-                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-                overflow: hidden;
-            }
-            .chat-header {
-                padding: 10px;
-                background-color: #4CAF50;
-                color: white;
-                text-align: center;
-                font-size: 18px;
-            }
-            .chat-messages {
-                flex: 1;
-                overflow-y: auto;
-                padding: 10px;
-                background-color: #f0f0f0;
-            }
-            .chat-messages .message {
-                margin-bottom: 10px;
-                max-width: 70%;
-            }
-            .chat-messages .message.self {
-                background-color: #DCF8C6;
-                text-align: right;
-                margin-left: auto;
-                padding: 10px;
-                border-radius: 8px 0px 8px 8px;
-            }
-            .chat-messages .message.other {
-                background-color: #ECECEC;
-                text-align: left;
-                padding: 10px;
-                border-radius: 0px 8px 8px 8px;
-            }
-            .chat-footer {
-                display: flex;
-                padding: 10px;
-                border-top: 1px solid #ccc;
-            }
-            .chat-footer input {
-                flex: 1;
-                padding: 10px;
-                border-radius: 4px;
-                border: 1px solid #ccc;
-                margin-right: 10px;
-            }
-            .chat-footer button {
-                padding: 10px 20px;
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+          }
+          .chat-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+          }
+          .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+          }
+          .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #e9ecef;
+          }
+          .chat-message {
+            margin-bottom: 10px;
+          }
+          .chat-message strong {
+            color: #007bff;
+          }
+          .chat-input {
+            display: flex;
+            padding: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #ddd;
+          }
+          .chat-input input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+          }
+          .chat-input button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+          }
+          .chat-input button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+          }
         </style>
-    </head>
-    <body>
-        <div class="login-container" id="login">
-            <h2>Login</h2>
-            <input type="text" id="usernameInput" placeholder="Enter your name" />
-            <button onclick="joinChat()">Join Chat</button>
-        </div>
-        <div class="chat-container" id="chat">
-            <div class="chat-header">Chat Room</div>
-            <div class="chat-messages" id="messages"></div>
-            <div class="chat-footer">
-                <input type="text" id="messageInput" placeholder="Type a message..." />
-                <button onclick="sendMessage()">Send</button>
-            </div>
+      </head>
+      <body>
+        <div class="chat-container">
+          <div class="chat-header">Chat Room</div>
+          <div class="chat-messages" id="messages"></div>
+          <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type a message..." />
+            <button id="sendButton">Send</button>
+          </div>
         </div>
         <script>
-            let username = "";
-            const ws = new WebSocket('wss://' + location.host);
+          const ws = new WebSocket('ws://' + location.host); // WebSocket connection without SSL
+          const messageInput = document.getElementById('messageInput');
+          const sendButton = document.getElementById('sendButton');
+          const messagesDiv = document.getElementById('messages');
 
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                const messages = document.getElementById('messages');
-                const messageElement = document.createElement('div');
-                messageElement.className = 'message ' + (data.sender === username ? 'self' : 'other');
-                messageElement.textContent = data.sender + ": " + data.message;
-                messages.appendChild(messageElement);
-                messages.scrollTop = messages.scrollHeight;
-            };
+          ws.onopen = () => {
+            console.log('Connected to WebSocket server');
+          };
 
-            function joinChat() {
-                username = document.getElementById('usernameInput').value.trim();
-                if (username) {
-                    ws.send(JSON.stringify({ type: 'join', username }));
-                    document.getElementById('login').style.display = 'none';
-                    document.getElementById('chat').style.display = 'flex';
-                }
+          ws.onmessage = (event) => {
+            const messageData = JSON.parse(event.data);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.innerHTML = '<strong>' + messageData.sender + ':</strong> ' + messageData.message;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          };
+
+          ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+          };
+
+          sendButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (message) {
+              ws.send(JSON.stringify({ sender: 'User', message }));
+              messageInput.value = '';
             }
-
-            function sendMessage() {
-                const messageInput = document.getElementById('messageInput');
-                const message = messageInput.value.trim();
-                if (message) {
-                    ws.send(JSON.stringify({ type: 'message', sender: username, message }));
-                    messageInput.value = '';
-                }
-            }
+          });
         </script>
-    </body>
-    </html>
+      </body>
+      </html>
     `);
   } else {
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not Found");
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
   }
 });
 
 // WebSocket server
 const wss = new WebSocket.Server({ server });
 
-wss.on("connection", (ws) => {
-  ws.on("message", (message) => {
-    const data = JSON.parse(message);
-    if (data.type === "join") {
-      ws.username = data.username;
-      const joinMessage = { type: "message", sender: "Server", message: `${data.username} joined the chat` };
-      broadcast(joinMessage);
-    } else if (data.type === "message") {
-      broadcast(data);
-    }
+wss.on('connection', (ws) => {
+  ws.on('message', (data) => {
+    const messageData = JSON.parse(data);
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(messageData));
+      }
+    });
   });
 });
 
-function broadcast(data) {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify(data));
-    }
-  });
-}
-
-server.listen(443, () => console.log("Server running on https://localhost"));
+// Start server on HTTP
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
