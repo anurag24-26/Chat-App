@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
             height: 80vh;
         }
         .chat-messages {
-            flex-grow: 1;
+            flex-grow: 0.4;
             overflow-y: auto;
             margin-bottom: 10px;
             padding: 10px;
@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
         }
         .input-container {
             display: flex;
-            flex-direction: column;
+           
             align-items: flex-start;
         }
         input[type="text"] {
