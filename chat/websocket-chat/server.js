@@ -38,7 +38,7 @@ font-size:30px;
             font-size:40px;
 background-color:#333c45;
 background-image:url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c58dc94febf3a6441d8d689cd5a400b2707e19ec0e/68747470733a2f2f7765622e77686174736170702e636f6d2f696d672f62672d636861742d74696c652d6461726b5f61346265353132653731393562366237333364393131306234303866303735642e706e67');
-height: 650px;
+height: 700px;
 
             overflow-y: auto;
             margin-bottom: 10px;
