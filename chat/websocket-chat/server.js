@@ -3,244 +3,146 @@ const http = require('http');
 const path = require('path');
 const fs = require('fs');
 
+
 // Create an HTTP server to serve the chat HTML page
 const server = http.createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/') {
         // Serve the HTML file
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Mobile Chat</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        background-color: #128C7E;
-                        margin: 0;
-                        padding: 0;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        height: 100vh;
-                        background-image: url('https://via.placeholder.com/800x800'); /* Add aesthetic background */
-                        background-size: cover;
-                        background-position: center;
-                    }
-
-                    .chat-container {
-                        width: 100%;
-                        max-width: 400px;
-                        background-color: #ffffff;
-                        border-radius: 10px;
-                        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-                        overflow: hidden;
-                    }
-
-                    .header {
-                        background-color: #075E54;
-                        color: white;
-                        padding: 15px;
-                        text-align: center;
-                        font-size: 18px;
-                    }
-
-                    .messages {
-                        padding: 10px;
-                        overflow-y: auto;
-                        height: 60vh;
-                    }
-
-                    .message-bubble {
-                        padding: 8px 15px;
-                        margin: 5px;
-                        max-width: 75%;
-                        border-radius: 20px;
-                        font-size: 16px;
-                        display: inline-block;
-                    }
-
-                    .message-bubble.sent {
-                        background-color: #DCF8C6;
-                        margin-left: auto;
-                    }
-
-                    .message-bubble.received {
-                        background-color: #ffffff;
-                        margin-right: auto;
-                    }
-
-                    .input-area {
-                        display: flex;
-                        padding: 10px;
-                        background-color: #f0f0f0;
-                        border-top: 1px solid #ddd;
-                    }
-
-                    .input-area input, .input-area button, .input-area input[type="file"] {
-                        padding: 10px;
-                        border-radius: 20px;
-                        border: none;
-                        font-size: 16px;
-                    }
-
-                    .input-area input[type="file"] {
-                        width: 0;
-                        height: 0;
-                        visibility: hidden;
-                    }
-
-                    .input-area input[type="file"] + label {
-                        background-color: #25D366;
-                        color: white;
-                        cursor: pointer;
-                    }
-
-                    .input-area input {
-                        flex: 1;
-                        margin-right: 10px;
-                    }
-
-                    .input-area button {
-                        background-color: #25D366;
-                        color: white;
-                        cursor: pointer;
-                    }
-
-                    .input-area button:disabled {
-                        background-color: #ccc;
-                    }
-
-                    #user-list {
-                        margin-top: 10px;
-                        border-top: 3px solid #0d9e9e;
-                        padding-top: 10px;
-                        font-size: 18px;
-                    }
-
-                    #login-screen, #chat-screen {
-                        display: none;
-                    }
-
-                    #login-screen.active, #chat-screen.active {
-                        display: block;
-                    }
-
-                    .online-users {
-                        font-size: 14px;
-                        color: #999;
-                        margin-top: 10px;
-                    }
-
-                </style>
-            </head>
-            <body>
-                <div id="login-screen" class="chat-container active">
-                    <h1>Enter Your Name</h1>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Simple Chat</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f0f0f0;
+                }
+                .chat-container {
+                    width: 60%;
+                    margin: 50px auto;
+                    background: #fff;
+                    padding: 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                }
+                .chat-messages {
+                    height: 400px;
+                    overflow-y: auto;
+                    margin-bottom: 10px;
+                }
+                .input-container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                input[type="text"] {
+                    padding: 10px;
+                    margin: 5px 0;
+                    width: 100%;
+                    font-size: 14px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                }
+                button {
+                    padding: 10px;
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    margin-top: 5px;
+                }
+                button:disabled {
+                    background-color: #ccc;
+                    cursor: not-allowed;
+                }
+                .message-bubble {
+                    margin: 10px;
+                    padding: 10px;
+                    background-color: #f1f1f1;
+                    border-radius: 10px;
+                    max-width: 60%;
+                }
+                #user-list {
+                    margin-bottom: 20px;
+                    font-weight: bold;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="chat-container">
+                <h1>Chat Room</h1>
+                <div id="user-list">Online Users:</div>
+                <div class="chat-messages" id="chat"></div>
+                <div class="input-container">
                     <input type="text" id="name" placeholder="Your Name">
-                    <button onclick="setName()">Join Chat</button>
+                    <button onclick="setName()">Set Name</button>
+                    <input type="text" id="message" placeholder="Type a message..." disabled>
+                    <button onclick="sendMessage()" disabled>Send</button>
                 </div>
+            </div>
 
-                <div id="chat-screen" class="chat-container">
-                    <div class="header">
-                        <h1>Chat Room</h1>
-                    </div>
-                    <div id="user-list" class="online-users">Online Users:</div>
-                    <div class="messages" id="chat"></div>
-                    <div class="input-area">
-                        <input type="text" id="message" placeholder="Type a message..." disabled>
-                        <input type="file" id="file-input" onchange="sendFile()" />
-                        <label for="file-input">📎</label>
-                        <button onclick="sendMessage()" disabled>Send</button>
-                    </div>
-                </div>
+            <script>
+                const ws = new WebSocket('wss://' + location.host);
+                let userName = '';
 
-                <script>
-                    const ws = new WebSocket('wss://' + location.host); // Use wss:// for secure WebSocket connection
-                    let userName = '';
+                ws.onopen = function(event) {
+                    console.log('WebSocket connection established.');
+                };
 
-                    ws.onopen = function(event) {
-                        console.log('WebSocket connection established.');
-                    };
+                ws.onmessage = function(event) {
+                    const chat = document.getElementById('chat');
+                    const newMessage = document.createElement('div');
+                    const messageData = JSON.parse(event.data);
 
-                    ws.onmessage = function(event) {
-                        const chat = document.getElementById('chat');
-                        const newMessage = document.createElement('div');
-                        const messageData = JSON.parse(event.data);
+                    if (messageData.type === 'message') {
+                        const messageBubble = document.createElement('div');
+                        messageBubble.classList.add('message-bubble');
+                        messageBubble.innerHTML = `<strong>${messageData.sender}:</strong> ${messageData.message}`;
+                        chat.appendChild(messageBubble);
+                        chat.scrollTop = chat.scrollHeight;
+                    } else if (messageData.type === 'userList') {
+                        const userList = document.getElementById('user-list');
+                        userList.innerHTML = 'Online Users: ' + messageData.users.join(', ');
+                    }
+                };
 
-                        if (messageData.type === 'message') {
-                            // Display the new message in the chat
-                            const bubbleClass = messageData.sender === userName ? 'sent' : 'received';
-                            newMessage.classList.add('message-bubble', bubbleClass);
-                            newMessage.innerHTML = '<strong>' + messageData.sender + ':</strong> ' + messageData.message;
-                            chat.appendChild(newMessage);
-                            chat.scrollTop = chat.scrollHeight;
-                        } else if (messageData.type === 'userList') {
-                            // Update the list of online users
-                            const userList = document.getElementById('user-list');
-                            userList.innerHTML = 'Online Users: ' + messageData.users.join(', ');
-                        }
-                    };
+                ws.onerror = function(error) {
+                    console.error('WebSocket error:', error);
+                };
 
-                    ws.onerror = function(error) {
-                        console.error('WebSocket error:', error);
-                    };
+                function setName() {
+                    const nameInput = document.getElementById('name');
+                    userName = nameInput.value.trim();
 
-                    function setName() {
-                        const nameInput = document.getElementById('name');
-                        userName = nameInput.value.trim();
+                    if (userName) {
+                        nameInput.disabled = true;
+                        document.getElementById('message').disabled = false;
+                        document.querySelector('button[onclick="sendMessage()"]').disabled = false;
+                        ws.send(JSON.stringify({ type: 'setName', name: userName }));
+                    } else {
+                        alert('Please enter a name.');
+                    }
+                }
 
-                        if (userName) {
-                            document.getElementById('login-screen').classList.remove('active');
-                            document.getElementById('chat-screen').classList.add('active');
+                function sendMessage() {
+                    const messageInput = document.getElementById('message');
+                    const message = messageInput.value;
 
-                            nameInput.disabled = true;
-                            document.getElementById('message').disabled = false;
-                            document.querySelector('button[onclick="sendMessage()"]').disabled = false;
-
-                            // Notify server of new user
-                            ws.send(JSON.stringify({ type: 'setName', name: userName }));
-                        } else {
-                            alert('Please enter a name.');
-                        }
+                    if (message.trim()) {
+                        const messageData = { type: 'message', sender: userName, message: message };
+                        ws.send(JSON.stringify(messageData));
                     }
 
-                    function sendMessage() {
-                        const messageInput = document.getElementById('message');
-                        const message = messageInput.value;
-
-                        if (message.trim()) {
-                            ws.send(JSON.stringify({ type: 'message', sender: userName, message: message }));
-                        }
-
-                        messageInput.value = '';
-                    }
-
-                    function sendFile() {
-                        const fileInput = document.getElementById('file-input');
-                        const file = fileInput.files[0];
-
-                        if (file) {
-                            const reader = new FileReader();
-
-                            reader.onload = function() {
-                                const fileMessage = reader.result;
-
-                                // Send file as base64-encoded string
-                                ws.send(JSON.stringify({
-                                    type: 'message',
-                                    sender: userName,
-                                    message: 'Sent a file',
-                                    file: fileMessage
-                                }));
-                            };
-
-                            reader.readAsDataURL(file);
-                        }
-                    }
-                </script>
-            </body>
-            </html>
+                    messageInput.value = '';
+                }
+            </script>
+        </body>
+        </html>
         `);
     } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -286,11 +188,7 @@ wss.on('connection', (ws) => {
 
         } else if (messageData.type === 'message') {
             // Broadcast the message to all connected clients
-            const outgoingMessage = JSON.stringify({
-                type: 'message',
-                sender: messageData.sender,
-                message: messageData.message
-            });
+            const outgoingMessage = JSON.stringify({ type: 'message', sender: messageData.sender, message: messageData.message });
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(outgoingMessage);
