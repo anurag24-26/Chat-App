@@ -100,9 +100,11 @@ background-image:url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c
 <body>
     <div class="chat-container">
         <h1>Chat Room</h1>
+<div class="input-container">
+
 <input type="text" id="name" placeholder="Your Name">
             <button onclick="setName()">Set Name</button>
-
+ </div>
         <div id="user-list">Online Users:</div>
         <div class="chat-messages" id="chat"></div>
         <div class="input-container">
