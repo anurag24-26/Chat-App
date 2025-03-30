@@ -12,6 +12,7 @@ const server = http.createServer((req, res) => {
 <head>
     <title>Baatein</title>
     
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,18 +25,17 @@ font-size:30px;
         h1{
             text-align: center;
         }
-       .chat-container {
-        width: 70%;
-        max-width: 1200px; /* Prevent stretching too wide */
-        margin: 30px auto;
-        background: #222831;
-        padding: 20px;
-        border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        display: flex;
-        flex-direction: column;
-        height: 80vh;
-    }
+        .chat-container {
+            width: 100%;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 60vh;
+        }
         .chat-messages {
             font-size:40px;
 background-color:#333c45;
@@ -114,32 +114,7 @@ height: 700px;
             font-size: 40px;
             font-weight: bold;
         }
-          @media (min-width: 1024px) {
-        .chat-container {
-            flex-direction: row; /* Display sections side-by-side */
-            gap: 15px;
-        }
-        .chat-messages {
-            height: 100%;
-            flex: 2; /* Allocate more space to messages */
-        }
-        #user-list {
-            flex: 1; /* Allocate smaller space for online users */
-            background: #2c2c34;
-            padding: 15px;
-            border-radius: 15px;
-            overflow-y: auto; /* Scrollable user list */
-        }
-        input[type="text"] {
-            font-size: 1.2rem; /* Adjust font size for PC */
-        }
-        .butto {
-            font-size: 1rem;
-        }
-    }
     </style>
-
-
 
 </head>
 <body>
