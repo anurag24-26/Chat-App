@@ -11,107 +11,134 @@ const server = http.createServer((req, res) => {
 <html>
 <head>
     <title>Baatein</title>
+    
     <style>
-    body {
-        font-family: 'Roboto', sans-serif; /* Modern font */
-        margin: 0;
-        padding: 0;
-        font-size: 20px;
-        color: #e4e4e4; /* Light text for better contrast */
-        background-color: #1a1a2e; /* Deep dark background */
-    }
-    h1 {
-        text-align: center;
-        color: #ffffff; /* White for clarity */
-        margin: 20px 0;
-    }
-    .chat-container {
-        width: 90%;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+font-size:30px;
+
+            background-color: #000000;
+        }
+        h1{
+            text-align: center;
+        }
+       .chat-container {
+        width: 70%;
+        max-width: 1200px; /* Prevent stretching too wide */
         margin: 30px auto;
-        background: #222831; /* Sleek dark container */
+        background: #222831;
         padding: 20px;
         border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Subtle depth */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         display: flex;
         flex-direction: column;
         height: 80vh;
     }
-    .chat-messages {
-        font-size: 18px;
-        background-color: #333c45;
-        background-image: url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c58dc94febf3a6441d8d689cd5a400b2707e19ec0e/68747470733a2f2f7765622e77686174736170702e636f6d2f696d672f62672d636861742d74696c652d6461726b5f61346265353132653731393562366237333364393131306234303866303735642e706e67');
-        background-size: cover; /* Ensure the image fits well */
-        background-repeat: no-repeat;
-        height: 100%;
-        overflow-y: scroll; /* Smooth scrolling */
-        scroll-behavior: smooth;
-        margin-bottom: 10px;
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        border-radius: 15px;
+        .chat-messages {
+            font-size:40px;
+background-color:#333c45;
+background-image:url('https://camo.githubusercontent.com/ebf18cd85f7aa9dc79fb74c58dc94febf3a6441d8d689cd5a400b2707e19ec0e/68747470733a2f2f7765622e77686174736170702e636f6d2f696d672f62672d636861742d74696c652d6461726b5f61346265353132653731393562366237333364393131306234303866303735642e706e67');
+height: 700px;
+
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-container {
+            display: flex;
+           
+            align-items: flex-start;
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 5px 0;
+            width: 90%;
+            height: 70px;
+            font-size: 40px;
+            border: 2px solid #000000;
+            border-radius: 30px;
+        }
+        .butto {
+           padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    font-size: 40px;
+    width: 10%;
+    height: 100px;
+    border-radius: 30px;
+    cursor: pointer;
+    margin-top: 5px;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message-bubble {
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 60%;
+            word-wrap: break-word;
+        }
+        .message-bubble.sent {
+               background-color: #20421a;
+    color: #ffffff;
+    align-self: flex-end;
+    border-radius: 40px 40px 0 40px;
+        }
+        .hii{
+            padding: 10px;
+            background-color: #000000;
+    color: rgb(0, 0, 0);
+    border: none;
+    font-size: 40px;
+    width: 10%;
+    height: 100px;
+    border-radius: 30px;
+    cursor: pointer;
+    margin-top: 5px;
+        }
+        .message-bubble.received {
+          background-color: #77437e;
+    color: #ffffff;
+    align-self: flex-start;
+    border-radius: 40px 40px 40px 0px;
+        }
+        #user-list {
+            margin-bottom: 20px;
+            font-size: 40px;
+            font-weight: bold;
+        }
+          @media (min-width: 1024px) {
+        .chat-container {
+            flex-direction: row; /* Display sections side-by-side */
+            gap: 15px;
+        }
+        .chat-messages {
+            height: 100%;
+            flex: 2; /* Allocate more space to messages */
+        }
+        #user-list {
+            flex: 1; /* Allocate smaller space for online users */
+            background: #2c2c34;
+            padding: 15px;
+            border-radius: 15px;
+            overflow-y: auto; /* Scrollable user list */
+        }
+        input[type="text"] {
+            font-size: 1.2rem; /* Adjust font size for PC */
+        }
+        .butto {
+            font-size: 1rem;
+        }
     }
-    .input-container {
-        display: flex;
-        gap: 15px; /* Space between input and button */
-        align-items: center;
-    }
-    input[type="text"] {
-        padding: 15px;
-        margin: 0;
-        width: 85%;
-        height: 50px;
-        font-size: 18px;
-        border: 2px solid #4caf50; /* Subtle green outline */
-        border-radius: 30px;
-        background: #2c2c34; /* Dark input background */
-        color: #ffffff; /* White text */
-    }
-    input[type="text"]::placeholder {
-        color: #aaaaaa; /* Subtle placeholder */
-    }
-    .butto {
-        padding: 10px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        font-size: 20px;
-        width: 12%;
-        height: 50px;
-        border-radius: 30px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-    .butto:hover {
-        background-color: #45a049; /* Slightly darker on hover */
-    }
-    .message-bubble {
-        padding: 15px;
-        border-radius: 20px;
-        max-width: 70%;
-        word-wrap: break-word;
-        line-height: 1.5; /* Improve readability */
-    }
-    .message-bubble.sent {
-        background-color: #2a9d8f; /* Softer green */
-        color: #ffffff;
-        align-self: flex-end;
-        border-radius: 20px 20px 0 20px;
-    }
-    .message-bubble.received {
-        background-color: #77437e;
-        color: #ffffff;
-        align-self: flex-start;
-        border-radius: 20px 20px 20px 0px;
-    }
-    #user-list {
-        margin-bottom: 20px;
-        font-size: 20px;
-        font-weight: bold;
-        color: #ffffff; /* Ensure visibility */
-    }
-</style>
+    </style>
+
 
 
 </head>
